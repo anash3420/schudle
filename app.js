@@ -791,7 +791,7 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
         }, 'studentid professorid events', function (err, find) {
             Course.find({
                 schoolshort: shortname,
-            }, 'coursename', function (err, found) {
+            }, 'coursename course_username', function (err, found) {
                 res.render("admin_dash", {
                     school: shortname,
                     courses: found,
@@ -818,6 +818,7 @@ app.get("/:schoolname/professor/dashboard", function (req, res) {
                 $in: [String(req.user._id)]
             }
         }, function (err, find) {
+            console.log(find);
             res.render("professor_dash", {
                 name: req.user.firstname + ' ' + req.user.lastname,
                 school: schoolname,
@@ -870,6 +871,9 @@ app.get("/:schoolname/admin/configure", function (req, res) {
             school: req.params.schoolname,
             url: authUrl
         });
+    }
+    else {
+        res.redirect("/" + req.params.schoolname);
     }
 })
 

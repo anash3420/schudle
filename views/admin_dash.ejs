@@ -4,16 +4,17 @@
 <head>
     <title>Dashboard - Schudle</title>
     <%- include("./headers/dashboard.ejs") %>
-
+</head>
 <body id="page-top">
     <div id="wrapper">
 
         <%- include("./panels/admin-panel.ejs") %>
 
         <div class="d-flex flex-column" id="content-wrapper">
-            <div id="content">
-
-                <%- include("./headers/top-container.ejs") %>
+            
+            <%- include("./headers/top-container.ejs") %>
+            <%- include("./preloaders/dash-preload.ejs") %> 
+            <div id="content" style="display: none;">
 
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
@@ -90,21 +91,21 @@
                                 </div>
                                 <ul class="list-group list-group-flush">
                                     <%courses.forEach(function(course){%>
-                                    <li class="list-group-item">
-                                        <div class="row align-items-center no-gutters">
-                                            <div class="col mr-2">
-                                                <h5 class="mb-0 text-uppercase" style="padding-bottom: 0.5rem;">
-                                                    <strong>
-                                                        <a role="button"
-                                                            href="/<%=school%>/admin/courses/<%=course.coursename + "$"+course._id%>">
-                                                            <%=course.coursename%><br>
-                                                        </a>
-                                                    </strong>
-                                                </h5>
-                                                <span class="text-s">Details</span>
-                                            </div>
-                                        </div>
-                                    </li>
+                                        <a role="button"
+                                            href="/<%=school%>/admin/courses/<%=course.coursename + "$"+course._id%>">
+                                            <li class="list-group-item">
+                                                <div class="row align-items-center no-gutters">
+                                                    <div class="col mr-2">
+                                                        <h5 class="mb-0 text-uppercase" style="padding-bottom: 0.5rem;">
+                                                            <strong>
+                                                                    <%=course.coursename%><br>
+                                                            </strong>
+                                                        </h5>
+                                                        <span class="text-s"><%= course.course_username %> </span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </a>
                                     <%})%>
                                 </ul>
                             </div>
@@ -114,6 +115,7 @@
             </div>
 
             <%- include("./footers/dashboard.ejs") %>
+            <%- include("./footers/dash-preload.ejs") %> 
         </div>
 </body>
 

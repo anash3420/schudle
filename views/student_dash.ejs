@@ -12,10 +12,9 @@
         <%- include("./panels/student-panel.ejs") %> 
 
         <div class="d-flex flex-column" id="content-wrapper">
-            <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
-
+            <%- include("./headers/top-container.ejs") %> 
+            <%- include("./preloaders/dash-preload.ejs") %> 
+            <div id="content" style="display: none;">
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
                         <h3 class="text-dark mb-0">Dashboard</h3>
@@ -29,22 +28,22 @@
                                 <%courses.forEach(function(course){%>
                                 <div class="col-lg-6" style="height: 400px;">
                                     <div class="card shadow mr-2 ml-2">
-                                        <img class="card-img-top" src="/images/book2.jpg" style="height: 250px;"
-                                            alt="Card image cap">
-                                        <div class="card-body">
-                                            <div class="row align-items-center no-gutters">
-                                                <div class="col mr-2">
-                                                    <h5 class="mb-0 text-uppercase" style="padding-bottom: 0.5rem;">
-                                                        <strong>
-                                                            <a role="button" href="/<%=school%>/<%= course.id %>">
-                                                                <%=course.coursename%><br>
-                                                            </a>
-                                                        </strong>
-                                                    </h5>
-                                                    <p class="card-text"><span class="text-s">Details</span></p>
+                                        <a role="button" href="/<%=school%>/<%= course.id %>">
+                                            <img class="card-img-top" src="/images/book2.jpg" style="height: 250px;"
+                                                alt="Card image cap">
+                                            <div class="card-body">
+                                                <div class="row align-items-center no-gutters">
+                                                    <div class="col mr-2">
+                                                        <h5 class="mb-0 text-uppercase" style="padding-bottom: 0.5rem;">
+                                                            <strong>
+                                                                    <%=course.coursename%><br>
+                                                            </strong>
+                                                        </h5>
+                                                        <p class="card-text"><span class="text-s"><%= course.course_username %> </span></p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     </div>
                                 </div>
                                 <%})%>
@@ -55,5 +54,6 @@
             </div>
 
             <%- include("./footers/dashboard.ejs") %> 
+            <%- include("./footers/dash-preload.ejs") %> 
             
 </body>

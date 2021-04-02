@@ -1,0 +1,12 @@
+<script>
+    $(window).on("load",function(){
+     setTimeout(function(){
+       $(".preload").fadeOut(function(){
+         $(".container").fadeIn(function(){
+           $(".preload").hide();
+           $(".container").show();
+         });
+       });
+     },1000);
+    });
+  </script>

@@ -23,10 +23,9 @@
         <% } %>
 
         <div class="d-flex flex-column" id="content-wrapper">
-            <div id="content">
-
-                <%- include("./headers/top-container.ejs") %>
-
+            <%- include("./headers/top-container.ejs") %>
+            <%- include("./preloaders/dash-preload.ejs") %> 
+            <div id="content" style="display: none;">
                 <div class="container-fluid">
                     <h3 class="text-dark mb-4">Profile</h3>
                     <div class="row mb-3">
@@ -196,6 +195,7 @@
                 integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
                 crossorigin="anonymous">
             </script>
+            <%- include("./footers/dash-preload.ejs") %> 
             <script>
                 function sub(event) {
 

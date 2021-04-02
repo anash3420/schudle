@@ -1,0 +1,11 @@
+<script>
+    $(window).on("load",function(){
+       $(".gooey").fadeOut(function(){
+         $("#content").fadeIn(function(){
+           $(".gooey").hide();
+           $("#content").show();
+         });
+         $(".sticky-footer").show();
+       });
+    });
+  </script>

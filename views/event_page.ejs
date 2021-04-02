@@ -11,10 +11,11 @@
         <%- include("./panels/professor-panel.ejs") %> 
         
         <div class="d-flex flex-column" id="content-wrapper">
-            <div id="content">
-                
-                <%- include("./headers/top-container.ejs") %> 
+            <%- include("./headers/top-container.ejs") %> 
+            <%- include("./preloaders/dash-preload.ejs") %> 
 
+            <div id="content" style="display: none;">
+                
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
                         <h3 class="text-dark mb-0">General Events</h3>
@@ -26,9 +27,6 @@
                                 <div class="li booking-card pb-0" style= "background-image: url(&quot;/images/events/<%= Math.floor(Math.random()*8) %>.jpg&quot;) ; box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;" >
                                     <div class="book-container">
                                       <div class="content">
-                                        <form action="<%="/" + school + "/admin/delete_event"%>" method="POST">
-                                            <button class="btn" name="event" value="<%=evt._id%>" type="submit">Delete Event</button>
-                                        </form>
                                       </div>
                                     </div>
                                     <div class="informations-container">
@@ -67,6 +65,7 @@
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous">
             </script>
+            <%- include("./footers/dash-preload.ejs") %> 
     </div>
 </body>
 </html>

@@ -1013,10 +1013,7 @@ body .grid {
 	}
 	 .tabs .slider {
 		 display: none;
-	/* }
-	 .tabs .content {
-		 margin-top: 20px;
-	} */
+	}
 	 .tabs .content section h2.tabtitle {
 		 display: block;
 	}
