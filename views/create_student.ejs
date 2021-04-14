@@ -25,6 +25,16 @@
                                 <br>
                                 <h4 class="text-dark mb-4">Register Student</h4>
                             </div>
+
+                            <form class="user" action="/<%=shortname%>/admin/register_students" enctype="multipart/form-data"
+                                method="POST">
+                                <div class="form-group ">
+                                    <input class="form-control form-control-user create-input" type="file" name="file">
+                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit"
+                                    name="upload">Upload CSV</button>
+                            </form>
+                            <br>
+ 
                             <form class="user" id="add_student" method="POST" onsubmit='sub(event)'>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
