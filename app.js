@@ -18,6 +18,7 @@ const {file} = require('googleapis/build/src/apis/file');
 const mime = require('mime-types');
 const { create, uniq, forEach } = require('lodash');
 const uniqid = require('uniqid');
+const csv = require('csv-parser')
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
@@ -1114,6 +1115,124 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
         res.send({
             message: 'Uauthorised',
         })
+    }
+})
+
+
+app.post("/:schoolname/admin/register_students", uploadDisk.single("file"), function (req, res){
+    const shortname = req.params.schoolname;
+    var schoolname;
+    School.findOne({
+        shortname: shortname
+    }, function (err, found) {
+        if (found) {
+            schoolname = found.schoolname
+        }
+    })
+    function generateP() {
+        var pass = '';
+        var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@';
+          
+        for (i = 1; i <= 8; i++) {
+            var char = Math.floor(Math.random()
+                        * str.length + 1);
+              
+            pass += str.charAt(char)
+        }
+          
+        return pass;
+    }
+
+    function registerStudents(users, failed,registerd) {
+        
+        users.forEach(function (user) {
+            User.findOne({
+                $or: [{
+                    username: user.username
+                }, {
+                    email: user.email
+                }]
+            }, function (err, found) {
+                if (found) {
+                    failed.push(user);
+
+                } else {
+                    var password = generateP();
+                    
+                    User.register({
+                        username: user.username,
+                        firstname: user.firstname,
+                        lastname: user.lastname,
+                        email: user.email,
+                        role: "student",
+                        schoolname: schoolname,
+                        schoolshort: shortname,
+                        profileimg: {
+                            data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png')),
+                            contentType: 'image/png'
+                        }
+                    }, password,function (err, student) {
+                        if (err) {
+                            console.log(err);
+                            failed.push(user);
+                        } else {
+                            School.findOne({
+                                shortname: shortname
+                            }, function (err, founded) {
+                                if (founded) {
+                                    founded.studentid.push(student._id)
+                                    founded.save(function () {
+                                        registerd.push(user)
+                                    });
+                                    var mailOptions = {
+                                        from: process.env.EMAIL,
+                                        to: user.email,
+                                        subject: 'Forgot Password',
+                        
+                                        html: '<p>Your Username : <b>'+user.username+'</b><br> Your password: <b></b>' + password+ '</p>'
+                                    };
+                                    transporter.sendMail(mailOptions, function (err, info) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
+                                        res.send({
+                                            message: "Link sent",
+                                        });
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        })
+        
+        return failed, registerd
+    }
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        var users =[]
+        var failed=[]
+        var registerd=[]
+        fs.createReadStream(req.file.destination + "/" + req.file.filename)
+            .pipe(csv({}))
+            .on('data', (data) => {
+                users.push(data)
+            })
+            .on('end', () => {
+                failed, registerd = registerStudents(users, failed, registerd)
+                //console.log(registerd);
+                console.log("failed");
+                console.log(failed);
+            });
+        
+        fs.unlink(req.file.destination + '/' + req.file.filename, (err) => {
+            if (err) {
+                console.error(err)
+                return
+            }
+        })                                                 
+        res.redirect("/" + schoolname + "/admin/dashboard")
     }
 })
 
