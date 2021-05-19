@@ -785,11 +785,14 @@ app.post("/:schoolname/profile/change_photo", uploadDisk.single("file"), functio
 //Admin Dashboard route
 app.get("/:schoolname/admin/dashboard", function (req, res) {
     const shortname = req.params.schoolname;
-
+    let google_config = false;
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         School.findOne({
             shortname: shortname,
-        }, 'studentid professorid events', function (err, find) {
+        }, 'studentid professorid events googletoken', function (err, find) {
+            if(find.googletoken){
+                google_config= true;
+            }
             Course.find({
                 schoolshort: shortname,
             }, 'coursename course_username', function (err, found) {
@@ -800,7 +803,8 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
                     no_professor: find.professorid.length,
                     name: req.user.firstname + ' ' + req.user.lastname,
                     info: req.user,
-                    events: find.events.length
+                    events: find.events.length,
+                    google_config: google_config,
                 });
             })
         })
@@ -1056,6 +1060,7 @@ app.get("/:schoolname/admin/createstudent", function (req, res) {
 })
 
 app.post("/:schoolname/admin/createstudent", function (req, res) {
+    console.log(req.body);
     const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
@@ -1263,7 +1268,7 @@ app.post("/:schoolname/admin/register_students", uploadDisk.single("file"), func
                 return
             }
         })                                                 
-        res.redirect("/" + schoolname + "/admin/dashboard")
+        res.redirect("/" +shortname+ "/admin/dashboard")
     }
 })
 
@@ -2641,7 +2646,10 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
             if (found) {
                 var fileMetadata = {
                     name: req.body.content_name, // file name that will be saved in google drive
-                    parents: [found.drivefolderid]
+                    parents: [found.drivefolderid],
+                    published: true,
+                    publishedOutsideDomain: true,
+                    publishAuto: true
                 };
                 var media = {
                     mimeType: req.file.mimetype,
