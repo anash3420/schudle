@@ -673,7 +673,8 @@ app.get("/:schoolname/profile", function (req, res) {
                 info: req.user,
                 school: shortname,
                 name: req.user.firstname + ' ' + req.user.lastname,
-                message: ""
+                message: "",
+                google_config: true,
             });
         } else if (req.user.role == "professor") {
             Course.find({
@@ -1341,7 +1342,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         const coursename = _.capitalize(req.body.coursename);
         const course_username = _.upperCase(req.body.course_username);
-
+        let folder_id;
         School.findOne({
             shortname: shortname
         }, function (err, find) {
@@ -1366,7 +1367,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         console.error(err);
                     } else {
                         // console.log('Folder Id: ', file.data.id);
-                        let folder_id = file.data.id;
+                        folder_id = file.data.id;
                         // console.log(typeof(file.data.id));
                         const newCourse = new Course({
                             coursename: coursename,
@@ -1381,6 +1382,19 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         newCourse.save(function (err, course) {
                             find.courses.push(course._id)
                             find.save(function () {
+                                drive.permissions.create({
+                                    fileId: folder_id,
+                                    resource: {
+                                        'value': 'default',
+                                        'type': 'anyone',
+                                        'role': 'reader'
+                                    },
+                                    auth: auth
+                                }, function (err, res) {
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                });
                                 res.send({
                                     message: "all saved",
                                 });
@@ -1388,6 +1402,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         })
                     }
                 });
+
             }
 
 
@@ -1403,6 +1418,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
 //Custom Course route
 app.get("/:schoolname/admin/courses/:course", function (req, res) {
     const shortname = req.params.schoolname;
+    let google_config = true;
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         const coursename = req.params.course.split("$")[0];
         const courseid = req.params.course.split("$")[1];
@@ -1430,6 +1446,7 @@ app.get("/:schoolname/admin/courses/:course", function (req, res) {
                 professors: professors,
                 students: students,
                 info: req.user,
+                google_config: google_config,
             });
         })
 
@@ -1470,6 +1487,7 @@ app.get("/:schoolname/admin/courses/:course/assignprof", function (req, res) {
                 course: course,
                 professors: professors,
                 info: req.user,
+                google_config: true,
             });
         })
 
@@ -1567,6 +1585,7 @@ app.get("/:schoolname/admin/courses/:course/removeprof", function (req, res) {
                 school: shortname,
                 course: course,
                 professors: professors,
+                google_config: true,
             });
         })
     } else {
@@ -1665,6 +1684,7 @@ app.get("/:schoolname/admin/courses/:course/enrollstudent", function (req, res) 
                 school: shortname,
                 course: course,
                 students: students,
+                google_config: true,
             });
         })
     } else {
@@ -1761,6 +1781,7 @@ app.get("/:schoolname/admin/courses/:course/removestudent", function (req, res) 
                 school: shortname,
                 course: course,
                 students: students,
+                google_config: true,
             });
         })
     } else {
@@ -1851,7 +1872,8 @@ app.get('/:schoolname/admin/deleteUser', function (req, res) {
                         users: found,
                         message: "",
                         name: req.user.firstname + ' ' + req.user.lastname,
-                        info: req.user
+                        info: req.user,
+                        google_config: true,
                     });
                 })
             }
@@ -2942,6 +2964,7 @@ app.get("/:schoolname/admin/eventpage", function (req, res) {
                             name: req.user.firstname + ' ' + req.user.lastname,
                             info: req.user,
                             courses: found,
+                            google_config: true,
                             // eventId: found.event.eventId
                         });
                     }

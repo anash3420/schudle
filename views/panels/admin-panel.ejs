@@ -13,7 +13,7 @@
                         class="fas fa-user"></i><span>Profile</span></a></li>
 
             
-            <% if(google_config==true){%>
+            <% if(google_config){%>
             <li class="nav-item"><a class="nav-link " href="/<%=school%>/admin/createprof"><i
                         class="fas fa-user-tie"></i><span>Register Professor</span></a></li>
 
@@ -37,7 +37,7 @@
     </div>
 </nav>
 <script>
-    let google_config = '<%-google_config%>';
+    
     // console.log(location.pathname.split("/").pop());
     var filename=location.pathname.split("/").pop();
     if(filename === "dashboard"){
