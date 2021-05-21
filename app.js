@@ -808,16 +808,21 @@ app.get("/:schoolname/admin/dashboard", function (req, res) {
             Course.find({
                 schoolshort: shortname,
             }, 'coursename course_username', function (err, found) {
-                res.render("admin_dash", {
-                    school: shortname,
-                    courses: found,
-                    no_student: find.studentid.length,
-                    no_professor: find.professorid.length,
-                    name: req.user.firstname + ' ' + req.user.lastname,
-                    info: req.user,
-                    events: find.events.length,
-                    google_config: google_config,
-                });
+                Batch.find({
+                    schoolshort: shortname,
+                }, 'batchname', function(err,batches){
+                    res.render("admin_dash", {
+                        school: shortname,
+                        courses: found,
+                        batches: batches,
+                        no_student: find.studentid.length,
+                        no_professor: find.professorid.length,
+                        name: req.user.firstname + ' ' + req.user.lastname,
+                        info: req.user,
+                        events: find.events.length,
+                        google_config: google_config,
+                    });
+                })    
             })
         })
     } else {
@@ -1554,8 +1559,8 @@ app.get("/:schoolname/admin/batches/:batch", function (req, res) {
     const shortname = req.params.schoolname;
     let google_config = true;
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
-        const batchname = req.params.course.split("$")[0];
-        const batchid = req.params.course.split("$")[1];
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
 
         var batch = {
             batchname: batchname,
