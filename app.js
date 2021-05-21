@@ -1826,6 +1826,43 @@ app.get("/:schoolname/admin/courses/:course/enrollstudent", function (req, res) 
     }
 })
 
+app.get("/:schoolname/admin/batches/:batch/enrollstudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        User.find({
+            schoolshort: shortname,
+            role: "student",
+            batch: {
+                $ne: batchid,
+            }
+        }, 'firstname lastname username email profileimg', function (err, students) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            res.render("enroll_student", {
+                name: req.user.firstname + " " + req.user.lastname,
+                info: req.user,
+                school: shortname,
+                batch: batch,
+                students: students,
+                google_config: true,
+            });
+        })
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
 app.post("/:schoolname/admin/courses/:course/enrollstudent", function (req, res) {
     const shortname = req.params.schoolname;
 
@@ -1885,6 +1922,68 @@ app.post("/:schoolname/admin/courses/:course/enrollstudent", function (req, res)
     }
 })
 
+
+app.post("/:schoolname/admin/batches/:batch/enrollstudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        var students = req.body.students;
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        if (typeof students == "string") {
+            students = [];
+            students.push(req.body.students)
+        }
+
+        var studentid = students.map((item) => item.split("$")[0]);
+        var studentemail = students.map((item) => item.split("$")[1]);
+
+        Batch.findOneAndUpdate({
+            batchname: batchname,
+            schoolshort: shortname,
+        }, {
+            $push: {
+                studentid: {
+                    $each: studentid
+                },
+                email: {
+                    $each: studentemail
+                }
+            }
+        }, function (err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            User.updateMany({
+                _id: {
+                    $in: studentid,
+                }
+            }, {
+                batch: result._id
+            }, function (err, result) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                res.redirect("/" + shortname + "/admin/batches/" + req.params.batch);
+            })
+        })
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+
+
+
 //Remove Student route
 app.get("/:schoolname/admin/courses/:course/removestudent", function (req, res) {
     const shortname = req.params.schoolname;
@@ -1914,6 +2013,42 @@ app.get("/:schoolname/admin/courses/:course/removestudent", function (req, res) 
                 info: req.user,
                 school: shortname,
                 course: course,
+                students: students,
+                google_config: true,
+            });
+        })
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+
+app.get("/:schoolname/admin/batches/:batch/removestudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        User.find({
+            schoolshort: shortname,
+            role: "student",
+            batch: batchid
+        }, 'firstname lastname username email profileimg', function (err, students) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            res.render("remove_student", {
+                name: req.user.firstname + " " + req.user.lastname,
+                info: req.user,
+                school: shortname,
+                batch: batch,
                 students: students,
                 google_config: true,
             });
@@ -1984,6 +2119,66 @@ app.post("/:schoolname/admin/courses/:course/removestudent", function (req, res)
         res.redirect("/" + shortname);
     };
 })
+
+app.post("/:schoolname/admin/batches/:batch/removestudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        var students = req.body.students;
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        if (typeof students == "string") {
+            students = [];
+            students.push(req.body.students);
+        }
+
+        var studentid = students.map((item) => item.split("$")[0]);
+        var studentemail = students.map((item) => item.split("$")[1]);
+
+        Batch.findOneAndUpdate({
+            batchname: batchname,
+            schoolshort: shortname,
+        }, {
+            $pull: {
+                studentid: {
+                    $in: studentid
+                },
+                email: {
+                    $in: studentemail
+                }
+            }
+        }, function (err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            User.updateMany({
+                _id: {
+                    $in: studentid,
+                }
+            }, {
+                batch: undefined
+            }, function (err, result) {
+                console.log(result);
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                res.redirect("/" + shortname + "/admin/batches/" + req.params.batch);
+            })
+        })
+
+    } else {
+        res.redirect("/" + shortname);
+    };
+})
+
 
 //Remove user from school
 app.get('/:schoolname/admin/deleteUser', function (req, res) {
