@@ -110,6 +110,31 @@
                                 </ul>
                             </div>
                         </div>
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h4 class="text-primary font-weight-bold m-0">Batches</h4>
+                                </div>
+                                <ul class="list-group list-group-flush">
+                                    <%batches.forEach(function(batch){%>
+                                        <a role="button"
+                                            href="/<%=school%>/admin/courses/<%=batch.batchname + "$" + batch._id%>">
+                                            <li class="list-group-item">
+                                                <div class="row align-items-center no-gutters">
+                                                    <div class="col mr-2">
+                                                        <h5 class="mb-0 text-uppercase" style="padding-bottom: 0.5rem;">
+                                                            <strong>
+                                                                    <%=batch.batchname%><br>
+                                                            </strong>
+                                                        </h5>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </a>
+                                    <%})%>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

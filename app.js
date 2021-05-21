@@ -172,6 +172,14 @@ const courseSchema = new mongoose.Schema({
     googlesheetid: String,
 });
 
+const batchSchema = new mongoose.Schema({
+    schoolshort: String,
+    schoolid: String,
+    batchname: String,
+    studentid: [],
+    email: [],
+});
+
 const schoolSchema = new mongoose.Schema({
     schoolname: String,
     schoolemail: String,
@@ -180,6 +188,7 @@ const schoolSchema = new mongoose.Schema({
     studentid: [],
     professorid: [],
     courses: [],
+    batches: [],
     events: [eventSchema],
     googletoken: String,
 });
@@ -217,6 +226,7 @@ const userSchema = new mongoose.Schema({
         default: 'student'
     },
     courses: [],
+    batch: mongoose.ObjectId,
     grades: [gradeSchema],
 });
 
@@ -230,6 +240,7 @@ const School = new mongoose.model('School', schoolSchema);
 const User = new mongoose.model('User', userSchema);
 const Course = new mongoose.model('Course', courseSchema);
 const Review = new mongoose.model('Review', reviewSchema);
+const Batch = new mongoose.model('Batch', batchSchema);
 
 
 //Creating Strategy for Authentication
@@ -1415,6 +1426,89 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
 })
 
 
+//Creating Batch route
+app.get("/:schoolname/admin/createbatch", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        res.render("create_batch", {
+            shortname: shortname,
+        });
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+app.post("/:schoolname/admin/createbatch-validation", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const val = req.body.val;
+
+
+        if (val == 'batchname') {
+            Batch.findOne({
+                schoolshort: shortname,
+                batchname: _.capitalize(req.body.data),
+            }, function (err, found) {
+                if (found) {
+                    res.send({
+                        message: 'taken',
+                    })
+                } else {
+                    res.send({
+                        message: 'not taken',
+                    })
+                }
+
+            })
+        }
+
+    } else {
+        res.send({
+            message: 'Uauthorised',
+        })
+    }
+})
+
+app.post("/:schoolname/admin/createbatch", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = _.capitalize(req.body.batchname);
+
+        School.findOne({
+            shortname: shortname
+        }, function (err, find) {
+                const newBatch = new Batch({
+                    batchname: batchname,
+                    schoolshort: shortname,
+                    schoolid: find._id,
+                });
+
+                newBatch.save(function (err, batch) {
+                    find.batches.push(batch._id)
+                    find.save(function () {
+                        res.send({
+                            message: "all saved",
+                        });
+                    })
+                })
+        })
+
+    } else {
+        res.send({
+            message: 'Uauthorised',
+        })
+    }
+})
+
+
+
+
+
+
+
 //Custom Course route
 app.get("/:schoolname/admin/courses/:course", function (req, res) {
     const shortname = req.params.schoolname;
@@ -1455,7 +1549,42 @@ app.get("/:schoolname/admin/courses/:course", function (req, res) {
     }
 })
 
+//Custom Batch Route
+app.get("/:schoolname/admin/batches/:batch", function (req, res) {
+    const shortname = req.params.schoolname;
+    let google_config = true;
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = req.params.course.split("$")[0];
+        const batchid = req.params.course.split("$")[1];
 
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        User.find({
+            schoolshort: shortname,
+            batch: batchid,
+        }, 'firstname lastname role username email profileimg', function (err, students) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            res.render("batch", {
+                school: shortname,
+                batch: batch,
+                name: req.user.firstname + " " + req.user.lastname,
+                students: students,
+                info: req.user,
+                google_config: google_config,
+            });
+        })
+
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
 
 //Assigning Professor route
 app.get("/:schoolname/admin/courses/:course/assignprof", function (req, res) {

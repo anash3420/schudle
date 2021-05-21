@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Create - Batch</title>
+    <%- include("./headers/forms.ejs") %>
+    <link rel="stylesheet" href="/css/form-preload.css">
+</head>
+
+<body class="bg-gradient-primary">
+    <%- include("./preloaders/form-preloader.ejs") %> 
+    <br><br>
+    <div class="container" style = "display: none;">
+        <div class="card shadow-lg o-hidden border-0 my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-5 d-none d-lg-flex">
+                        <div class="flex-grow-1 bg-register-image"
+                            style="background-image: url(&quot;/images/book.jpg&quot;);"></div>
+                    </div>
+                    <div class="col-lg-7">
+                        <a type="button" class="btn-close float-right btn-link" aria-label="Close"
+                            href="/<%=shortname%>/admin/dashboard"></a>
+                        <div class="p-5">
+                            <div class="text-center">
+                                <br>
+                                <h4 class="text-dark mb-4">Create Batch</h4>
+                            </div>
+                            <form class="user" id="create_batch" method="POST" onsubmit='sub(event)'>
+                                <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                        <input id="batchname" class="form-control form-control-user input" type="text"
+                                            placeholder="Batch Name" name="batchname" required>
+                                    </div>
+                                    <div id="batchname-feedback" class="invalid-feedback" style="display: none;">
+                                        *This batch name is already created.
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-block text-white btn-user" type="submit"
+                                    name="create">Create Batch</button>
+                            </form>
+                            <br><br><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include("./footers/forms.ejs") %>
+    <%- include("./footers/form-preload.ejs") %> 
+    <script>
+        var shortname = '<%-shortname%>';
+
+        function sub(event) {
+            event.preventDefault();
+            var input = $('.input');
+
+            var flag = true;
+
+            for (var i = 0; i < input.length; i++) {
+                if (input[i].classList.contains("is-invalid")) flag = false;
+            }
+
+            if (flag) {
+                $.ajax({
+                    url: '/' + shortname + '/admin/createbatch',
+                    type: 'post',
+                    data: {
+                        'batchname': $('#batchname').val(),
+                    },
+                    success: function (response) {
+                        if (response.message == "all saved") {
+                            alert($('#batchname').val() + " Created")
+                            window.location.reload();
+                        } else {
+                            window.location.reload();
+                        }
+                    }
+                });
+            }
+        }
+
+        $('document').ready(function () {
+            var typingTimer;
+            var doneTypingInterval = 100;
+            var input = $('.input');
+
+            input.on('keyup', function (event) {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(call(event.target.name), doneTypingInterval);
+            });
+
+            input.on('keydown', function () {
+                clearTimeout(typingTimer);
+            });
+
+            function call(field) {
+                var data = $('#' + field).val();
+                $.ajax({
+                    url: '/' + shortname + '/admin/createbatch-validation',
+                    type: 'post',
+                    data: {
+                        'val': field,
+                        'data': data,
+                    },
+                    success: function (response) {
+                        if (response.message == "taken") {
+                            $('#' + field).addClass('is-invalid');
+                            $('#' + field + "-feedback")[0].style.display = "block";
+                        } else {
+                            $('#' + field).removeClass('is-invalid');
+                            $('#' + field + "-feedback")[0].style.display = "none";
+                        }
+                    }
+                });
+            }
+
+
+
+        });
+    </script>
+    <script type="text/javascript" src="/javascript/all.js"></script>
+</body>
+
+</html>
