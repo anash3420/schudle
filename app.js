@@ -27,7 +27,8 @@ const {
     values
 } = require('lodash');
 const uniqid = require('uniqid');
-const csv = require('csv-parser')
+const csv = require('csv-parser');
+const { response } = require('express');
 
 const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
@@ -1150,7 +1151,7 @@ app.post("/:schoolname/admin/createstudent", function (req, res) {
 })
 
 
-app.post("/:schoolname/admin/register_students", uploadDisk.single("file"), function (req, res){
+app.post("/:schoolname/admin/register_students", uploadDisk.single("file"), function (req, res) {
     const shortname = req.params.schoolname;
     var schoolname;
     School.findOne({
@@ -1160,113 +1161,422 @@ app.post("/:schoolname/admin/register_students", uploadDisk.single("file"), func
             schoolname = found.schoolname
         }
     })
+
     function generateP() {
         var pass = '';
         var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@';
-          
+
         for (i = 1; i <= 8; i++) {
-            var char = Math.floor(Math.random()
-                        * str.length + 1);
-              
+            var char = Math.floor(Math.random() *
+                str.length + 1);
+
             pass += str.charAt(char)
         }
-          
+
         return pass;
     }
+async function registerStudents(users, failed, registerd) {
 
-    function registerStudents(users, failed,registerd) {
-        
-        users.forEach(function (user) {
-            User.findOne({
-                $or: [{
-                    username: user.username
-                }, {
-                    email: user.email
-                }]
-            }, function (err, found) {
-                if (found) {
-                    failed.push(user);
-
-                } else {
-                    var password = generateP();
-                    
-                    User.register({
-                        username: user.username,
-                        firstname: user.firstname,
-                        lastname: user.lastname,
-                        email: user.email,
-                        role: "student",
-                        schoolname: schoolname,
-                        schoolshort: shortname,
-                        profileimg: {
-                            data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png')),
-                            contentType: 'image/png'
+    //process.nextTick(()=>{
+    // School.findOne({
+    //     shortname: shortname
+    // }, async (err, founded) => {
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+            // users.forEach((user) => {
+            for (i = 0; i < users.length; i++) {
+                console.log(i); 
+                user = users[i]
+                await User.findOne({
+                    $or: [{
+                        username: user.username
+                    }, {
+                        email: user.email
+                    }]
+                }, async (err, found) => {
+                    // process.nextTick(() => {
+                    if (err) {
+                        console.log(err);
+                    }if (found) {
+                        //console.log(found)
+                        failed.push(user);
+                        //console.log(failed);
+                        if (i == (users.length - 1)) {
+                            console.log(i);
+                            console.log(registerd);
+                            //find.save();
+                            //res.send({failed:failed,registerd:registerd});
+                            return res.send({
+                                failed: failed
+                            });
+                            //return failed, registerd
                         }
-                    }, password,function (err, student) {
-                        if (err) {
-                            console.log(err);
-                            failed.push(user);
-                        } else {
-                            School.findOne({
-                                shortname: shortname
-                            }, function (err, founded) {
-                                if (founded) {
-                                    founded.studentid.push(student._id)
-                                    founded.save(function () {
-                                        registerd.push(user)
-                                    });
-                                    var mailOptions = {
-                                        from: process.env.EMAIL,
-                                        to: user.email,
-                                        subject: 'Forgot Password',
-                        
-                                        html: '<p>Your Username : <b>'+user.username+'</b><br> Your password: <b></b>' + password+ '</p>'
-                                    };
-                                    transporter.sendMail(mailOptions, function (err, info) {
-                                        if (err) {
-                                            console.log(err);
-                                        }
-                                        res.send({
-                                            message: "Link sent",
+
+                    } else {
+
+                        var password = '123' //generateP();                                        /// dev-test
+                        // console.log(user);
+                        //console.log(found);
+                        await User.register({
+                            username: user.username,
+                            firstname: user.firstname,
+                            lastname: user.lastname,
+                            email: user.email,
+                            role: "student",
+                            schoolname: schoolname,
+                            schoolshort: shortname,
+                            profileimg: {
+                                data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png')),
+                                contentType: 'image/png'
+                            }
+                        }, password, async (err, student) => {
+                            if (err) {
+                                console.log( err);
+                                failed.push(user);
+
+                            } else if (student) {
+                                console.log(student._id);
+                                // await founded.save((err, result) => {
+                                //     if (err) {
+                                //         console.log("error -:" + err);
+                                //         failed.push(user);
+
+                                //     } else if(result) {
+                                //         registerd.push(user);
+                                //     }
+                                // })
+                                await School.findOne({
+                                    shortname: shortname
+                                }, async (err, found) => {
+                                    if (err) {
+                                        await User.remove({
+                                            _id: student._id
+                                        }, (err, user) => {});
+                                        console.log(err);
+                                        failed.push(user);
+                                    } else {
+                                        found.studentid.push(student._id)
+                                        await found.save(() => {
+                                            registerd.push(user);
+                                            
                                         });
-                                    })
-                                }
-                            })
-                        }
-                    })
-                }
-            })
-        })
-        
-        return failed, registerd
-    }
+                                    }
+                                })
+                                if (i == (users.length - 1)) {
+                                                console.log(i);
+                                                console.log(registerd);
+                                                //find.save();
+                                                //res.send({failed:failed,registerd:registerd});
+                                                return res.send({
+                                                    failed: failed
+                                                });
+                                                //return failed, registerd
+                                            }
+                                // console.log(registerd);
+
+                                //res.send({failed:failed,registerd:registerd});
+                                // var mailOptions = {
+                                //     from: process.env.EMAIL,
+                                //     to: user.email,
+                                //     subject: 'Forgot Password',
+                                //     html: '<p>Your Username : <b>' + user.username + '</b><br> Your password: <b></b>' + password + '</p>'
+                                // };
+                                // transporter.sendMail(mailOptions, (err, info) => {
+                                //     if (err) {
+                                //         console.log(err);
+                                //     }
+                                // })
+
+                            } else {
+                                console.log("Error!!");
+                            }
+                            
+                        })
+                    }
+                    if (i == (users.length - 1)) {
+                        //console.log(i);
+                        //console.log(registerd);
+                        //find.save();
+                        //res.send({failed:failed,registerd:registerd});
+                        return res.send({
+                            failed: failed
+                        });
+                        //return failed, registerd
+                    }
+                    // })
+                    // setImmediate(()=>{if (i === users.length - 1) {
+                    //     //console.log(failed);
+                    //     console.log(registerd);
+                    //     //find.save();
+                    //     //res.send({failed:failed,registerd:registerd});
+                    //     res.send({
+                    //         failed: failed,
+                    //         registerd: registerd
+                    //     });
+                    //     return failed, registerd
+                    // }})
+
+                })
+
+            }
+
+            // })
+
+        // }
+        // console.log(failed);
+
+        // setTimeout(function(){ res.send({
+        //     failed: failed,
+        //     registerd: registerd,
+        //     failed2: failed,
+        // }); }, 2000);
+        // return failed, registerd
+    // })
+    //})
+    //setImmediate(() => { res.send({failed:failed,registerd:registerd}); })
+}
+// if (founded) {
+        //     founded.studentid.push(student._id)
+        //     founded.save(function () {
+        //         registerd.push(user)
+        //     });
+        // }
+
+        // users.forEach(function (user) {
+        //     User.findOne({
+        //         $or: [{
+        //             username: user.username
+        //         }, {
+        //             email: user.email
+        //         }]
+        //     }, function (err, found) {
+        //         if (found) {
+        //             failed.push(user);
+
+        //         } else {
+        //             var password = generateP();
+
+        //             User.register({
+        //                 username: user.username,
+        //                 firstname: user.firstname,
+        //                 lastname: user.lastname,
+        //                 email: user.email,
+        //                 role: "student",
+        //                 schoolname: schoolname,
+        //                 schoolshort: shortname,
+        //                 profileimg: {
+        //                     data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png')),
+        //                     contentType: 'image/png'
+        //                 }
+        //             }, password, function (err, student) {
+        //                 if (err) {
+        //                     console.log(err);
+        //                     failed.push(user);
+        //                 } else {
+        //                     School.findOne({
+        //                         shortname: shortname
+        //                     }, function (err, founded) {
+        //                         if (founded) {
+        //                             founded.studentid.push(student._id)
+        //                             founded.save(function () {
+        //                                 registerd.push(user)
+        //                             });
+        //                             var mailOptions = {
+        //                                 from: process.env.EMAIL,
+        //                                 to: user.email,
+        //                                 subject: 'Forgot Password',
+
+        //                                 html: '<p>Your Username : <b>' + user.username + '</b><br> Your password: <b></b>' + password + '</p>'
+        //                             };
+        //                             transporter.sendMail(mailOptions, function (err, info) {
+        //                                 if (err) {
+        //                                     console.log(err);
+        //                                 }
+        //                                 res.send({
+        //                                     message: "Link sent",
+        //                                 });
+        //                             })
+        //                         }
+        //                     })
+        //                 }
+        //             })
+        //         }
+        //     })
+        // })
+        // console.log(temp);
+        // console.log("registerd");
+        // console.log(registerd);
+        // return failed, registerd
+    
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
-        var users =[]
-        var failed=[]
-        var registerd=[]
+        var users = []
+        var failed = []
+        var registerd = []
         fs.createReadStream(req.file.destination + "/" + req.file.filename)
             .pipe(csv({}))
-            .on('data', (data) => {
-                users.push(data)
+            .on('data', async(data) => {
+                users.push(data);
+                //failed, registerd = await registerStudents([data],failed, registerd);
             })
-            .on('end', () => {
+            .on('end',async () => {
                 failed, registerd = registerStudents(users, failed, registerd)
-                //console.log(registerd);
-                console.log("failed");
-                console.log(failed);
             });
-        
+
         fs.unlink(req.file.destination + '/' + req.file.filename, (err) => {
             if (err) {
                 console.error(err)
                 return
             }
-        })                                                 
-        res.redirect("/" + schoolname + "/admin/dashboard")
+        })
+        
+    //    setTimeout(function(){ res.send({users:failed}); }, 00);
+
+    //    res.redirect("/" + schoolname + "/admin/dashboard")
     }
 })
 
+//dev test
+// app.post("/:schoolname/admin/register_students", uploadDisk.single("file"), function (req, res) {
+//     const shortname = req.params.schoolname;
+//     var schoolname;
+//     School.findOne({
+//         shortname: shortname
+//     }, function (err, found) {
+//         if (found) {
+//             schoolname = found.schoolname
+//         }
+//     })
+
+//     function generateP() {
+//         var pass = '';
+//         var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@';
+
+//         for (i = 1; i <= 8; i++) {
+//             var char = Math.floor(Math.random() *
+//                 str.length + 1);
+
+//             pass += str.charAt(char)
+//         }
+
+//         return pass;
+//     }
+
+//     function registerStudents(users, failed, registerd) {
+
+//         School.findOne({shortname: shortname})
+//             .exec()
+//             .then((find, done) => {
+//                 for (i = 0; i < users.length; i++) {
+//                     user = users[i]
+//                     User.findOne({
+//                             $or: [{
+//                                 username: user.username
+//                             }, {
+//                                 email: user.email
+//                             }]
+//                         }).exec()
+//                         .then((found, done) => {
+//                             if (found) {
+//                                 // console.log(found)
+//                                 failed.push(found.username);
+//                                 console.log('Username or Email already taken!');
+//                             } else {
+//                                 var password = '123' //generateP();                                        /// dev-test
+//                                 return User.register({
+//                                     username: user.username,
+//                                     firstname: user.firstname,
+//                                     lastname: user.lastname,
+//                                     email: user.email,
+//                                     role: "student",
+//                                     schoolname: schoolname,
+//                                     schoolshort: shortname,
+//                                     profileimg: {
+//                                         data: fs.readFileSync(path.join(__dirname + '/public/images/default_profile.png')),
+//                                         contentType: 'image/png'
+//                                     }
+//                                 }, password).exec()
+//                             }
+//                         })
+//                         .then((student) => {
+//                             if(student){console.log(student._id)
+//                             find.studentid.push(student._id);
+//                             find.save();
+//                             console.log(registerd);
+//                             registerd.push(student.username);}
+
+//                             // res.send({
+//                             //     failed: failed,
+//                             //     registerd: registerd
+//                             // });
+//                             // var mailOptions = {
+//                             //     from: process.env.EMAIL,
+//                             //     to: user.email,
+//                             //     subject: 'Forgot Password',
+//                             //     html: '<p>Your Username : <b>' + user.username + '</b><br> Your password: <b></b>' + password + '</p>'
+//                             // };
+//                             // transporter.sendMail(mailOptions, (err, info) => {
+//                             //     if (err) {
+//                             //         console.log(err);
+//                             //     }
+//                             // })
+//                         })
+//                 }
+//             })
+//             .then(()=>{
+//                 console.log(failed)
+//                 res.send({
+//                     failed: failed,
+//                     registerd: registerd,
+//                 });
+//                 return failed, registerd
+//             })
+//             .catch((err)=>{
+//                 done(err)
+//             })
+
+//         // console.log(failed);
+            
+//             // setTimeout(function(){ res.send({
+//             //     failed: failed,
+//             //     registerd: registerd,
+//             //     failed2: failed,
+//             // }); }, 2000);
+//             // return failed, registerd
+        
+//     }
+
+
+//     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+//         var users = []
+//         var failed = []
+//         var registerd = []
+//         fs.createReadStream(req.file.destination + "/" + req.file.filename)
+//             .pipe(csv({}))
+//             .on('data', async(data) => {
+//                 users.push(data);
+//                 //failed, registerd = await registerStudents([data],failed, registerd);
+//             })
+//             .on('end',async () => {
+//                 return registerStudents(users, failed, registerd)
+//             })
+//             .then((failed, registerd)=>{
+//                 console.log(failed);
+//             });
+
+//         fs.unlink(req.file.destination + '/' + req.file.filename, (err) => {
+//             if (err) {
+//                 console.error(err)
+//                 return
+//             }
+//         })
+        
+//     //    setTimeout(function(){ res.send({users:failed}); }, 00);
+
+//     //    res.redirect("/" + schoolname + "/admin/dashboard")
+//     }
+// })
 
 //Creating course route
 app.get("/:schoolname/admin/createcourse", function (req, res) {
