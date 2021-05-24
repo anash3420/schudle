@@ -1186,7 +1186,7 @@ async function registerStudents(users, failed, registerd) {
     //     } else {
             // users.forEach((user) => {
             for (i = 0; i < users.length; i++) {
-                console.log(i); 
+                
                 user = users[i]
                 await User.findOne({
                     $or: [{
