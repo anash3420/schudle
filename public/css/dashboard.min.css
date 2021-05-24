@@ -9490,9 +9490,6 @@ a:focus {
 .sidebar .sidebar-brand .sidebar-brand-icon i {
   font-size: 2rem;
 }
-.sidebar .sidebar-brand .sidebar-brand-text {
-  display: none;
-}
 .sidebar hr.sidebar-divider {
   margin: 0 1rem 1rem;
 }
@@ -9501,6 +9498,28 @@ a:focus {
   padding: 0 1rem;
   font-weight: 800;
   font-size: 0.80rem;
+}
+@media (max-width: 768px) {
+  .sidebar .sidebar-brand .sidebar-brand-text span {
+    display: none;
+  }
+  .sidebar.toggled .sidebar-brand .schudle-logo img {
+    display: none;
+  }
+  .sidebar .sidebar-brand .schudle-logo {
+    position: absolute;
+    justify-content: space-around;
+  }
+  .sidebar .sidebar-brand .schudle-logo img {
+    display: inline-block;
+    width: 40%;
+    height: 40%;
+    transition: all 0.5s ease;
+  }
+  .sidebar .sidebar-brand .schudle-logo img:hover {
+    width: 55%;
+    height: 55%;
+  }
 }
 @media (min-width: 768px) {
   .sidebar {
@@ -9557,8 +9576,11 @@ a:focus {
   .sidebar .sidebar-brand .sidebar-brand-icon i {
     font-size: 2rem;
   }
-  .sidebar .sidebar-brand .sidebar-brand-text {
+  .sidebar .sidebar-brand .sidebar-brand-text span {
     display: inline;
+  }
+  .sidebar .sidebar-brand .schudle-logo img {
+    display: none;
   }
   .sidebar .sidebar-heading {
     text-align: left;
@@ -9617,6 +9639,16 @@ a:focus {
   }
   .sidebar.toggled .sidebar-brand .sidebar-brand-text {
     display: none;
+  }
+  .sidebar.toggled .sidebar-brand .schudle-logo img {
+    display: inline-block;
+    height: 55%;
+    width: 55%;
+    transition: all 0.5s ease ;
+  }
+  .sidebar.toggled .sidebar-brand .schudle-logo img:hover {
+    height: 70%;
+    width: 70%;
   }
   .sidebar.toggled .sidebar-heading {
     text-align: center;

@@ -7,9 +7,11 @@
 
 <body id="page-top">
     <div id="wrapper">
-        
-        <%- include("./panels/professor-panel.ejs") %> 
-        
+        <% if(info.role === "professor") {%> 
+            <%- include("./panels/professor-panel.ejs") %> 
+        <% }else{ %> 
+        <%- include("./panels/student-panel.ejs") %> 
+        <% } %> 
         <div class="d-flex flex-column" id="content-wrapper">
             <%- include("./headers/top-container.ejs") %> 
             <%- include("./preloaders/dash-preload.ejs") %> 

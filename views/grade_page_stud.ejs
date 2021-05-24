@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade page</title>
+    <title>Grades</title>
+    <%- include("./headers/dashboard.ejs") %> 
 </head>
-<body>
-    <H1>Grades</H1>
-    <%info.grades.forEach(function(grade){%>
-        <label><%=grade.coursename%></label>    
-        <label><%=grade.itemname%></label>
-        <label>Obtained: <%=grade.pointsobtained%> out of <%=grade.totalpoints%></label>
-        <hr>
-    <%})%>
+
+<body id="page-top">
+    <div id="wrapper">
+        
+        <%- include("./panels/student-panel.ejs") %> 
+
+        <div class="d-flex flex-column" id="content-wrapper">
+            <%- include("./headers/top-container.ejs") %> 
+            <%- include("./preloaders/dash-preload.ejs") %> 
+            <div id="content" style="display: none;">
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0">Grades</h3>
+                    </div>
+                    <div class="row">
+                        <%info.grades.forEach(function(grade){%>
+                            <label><%=grade.coursename%></label>    
+                            <label><%=grade.itemname%></label>
+                            <label>Obtained: <%=grade.pointsobtained%> out of <%=grade.totalpoints%></label>
+                            <hr>
+                        <%})%>
+                    </div>
+                </div>
+            </div>
+
+            <%- include("./footers/dashboard.ejs") %> 
+            <%- include("./footers/dash-preload.ejs") %>     
 </body>
-</html>
