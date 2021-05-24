@@ -1077,7 +1077,7 @@ app.get("/:schoolname/admin/createstudent", function (req, res) {
 })
 
 app.post("/:schoolname/admin/createstudent", function (req, res) {
-    console.log(req.body);
+    // console.log(req.body);
     const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
