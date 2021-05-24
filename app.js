@@ -840,7 +840,6 @@ app.get("/:schoolname/professor/dashboard", function (req, res) {
                 $in: [String(req.user._id)]
             }
         }, function (err, find) {
-            console.log(find);
             res.render("professor_dash", {
                 name: req.user.firstname + ' ' + req.user.lastname,
                 school: schoolname,
@@ -2383,6 +2382,9 @@ app.get('/:schoolname/:course_id', function (req, res) {
                             courseid: req.params.course_id,
                             user:req.user,
                             date: new Date(),
+                            courses: courses,
+                            info: req.user,
+                            itemid: req.params.itemid,
                         });
                     }
                 })
@@ -2824,23 +2826,35 @@ app.post("/:schoolname/:courseid/:itemid/grade", function (req, res) {
 // student grades page
 
 app.get("/:schoolname/student/gradepage", function (req, res) {
-    if (req.isAuthenticated() && req.user.role == "student") {
-        res.render("grade_page_stud", {
-            info: req.user
+    if (req.isAuthenticated() && req.user.role == "student" ) {
+        Course.find({
+            studentid: {
+                $in: [String(req.user._id)]
+            }
+        }, function (err, find) {
+            res.render("grade_page_stud", {
+                name: req.user.firstname + ' ' + req.user.lastname,
+                school: req.params.schoolname,
+                courses: find,
+                info: req.user,
+            })
         });
+    } else {
+        res.redirect("/" + schoolname);
     }
 })
 
 // submit assignment
-app.get("/:schoolname/:courseid/:itemid/submitassignment", function (req, res) {
-    if (req.isAuthenticated() && req.user.role == "student") {
-        res.render("add_submission", {
-            schoolname: req.params.schoolname,
-            courseid: req.params.courseid,
-            itemid: req.params.itemid,
-        });
-    }
-})
+
+// app.get("/:schoolname/:courseid/:itemid/submitassignment", function (req, res) {
+//     if (req.isAuthenticated() && req.user.role == "student") {
+//         res.render("add_submission", {
+//             schoolname: req.params.schoolname,
+//             courseid: req.params.courseid,
+//             itemid: req.params.itemid,
+//         });
+//     }
+// })
 
 app.post("/:schoolname/:courseid/:itemid/submitassignment", uploadDisk.single("file"), function (req, res) {
     if (req.isAuthenticated() && req.user.role == "student") {
@@ -3364,7 +3378,10 @@ app.get("/:schoolname/student/eventpage", function (req, res) {
                 allEvent = Array.from(uniqueset).map(JSON.parse);
                 res.render("event_page", {
                     school: req.params.schoolname,
-                    events: allEvent
+                    events: allEvent,
+                    courses: found,
+                    info: req.user,
+                    name: req.user.firstname + ' ' + req.user.lastname
                 });
             }
         })
