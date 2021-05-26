@@ -711,6 +711,7 @@ body .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 0.01fr));
   grid-gap: 24px;
+  user-select: none;
 }
 
 /* Assignment Cards CSS  */
@@ -720,6 +721,19 @@ body .grid {
 	border-radius: 10px;
 	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 	display: flex;
+	max-width: 100%;
+	overflow: hidden;
+	width: 300px;
+}
+
+.course-sub {
+  display: flex;
+  flex-direction: column;
+  padding: 5%;
+  background-color: #fff;
+	border-radius: 0px 0px 10px 10px;
+  z-index: 1;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 	max-width: 100%;
 	overflow: hidden;
 	width: 300px;
@@ -760,6 +774,24 @@ body .grid {
   color: #848484;
   padding: 5px 15px;
 }
+.upload-btn{
+  font-size: 1.2rem;
+  outline: none;
+  background-color: inherit;
+  border: none;
+  color: #848484;
+  padding: 5px 15px;
+}
+.unsubmit-btn{
+  font-size: 1.2rem;
+  outline: none;
+  background-color: inherit;
+  border: none;
+  color: #848484;
+  padding: 5px 15px;
+  width: 100%;
+  padding: 10px 0px;
+}
 .view-btn {
   position: absolute;
   bottom: 10%;
@@ -783,11 +815,22 @@ body .grid {
   padding: 5px 15px;
 }
 
-.fa-download:hover,.fa-external-link-alt:hover,.fa-minus:hover{
+.fa-download:hover,.fa-external-link-alt:hover,.fa-minus:hover,.fa-upload:hover,.fa-eject:hover{
   color: #61128c;
   background-color: #e3ebf1;
 }
-
+.upload-btn:hover,.unsubmit-btn:hover{
+  color: #61128c;
+  background-color: #e3ebf1;
+}
+.red{
+  font-size: 1rem;
+  color: #e12717;
+}
+.green{
+  font-size: 1rem;
+  color: #1cc88a;
+}
 /* .btn {
 	background-color: #2A265F;
 	border: 0;
@@ -840,6 +883,7 @@ body .grid {
 	 width: 25%;
 	 padding: 0 10px;
 	 text-align: center;
+   user-select: none;
 }
  .tabs ul li label {
 	 transition: all 0.3s ease-in-out;
