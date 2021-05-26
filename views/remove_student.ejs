@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>course - <%=course.coursename%></title>
+    <title>course - <%=batch ? batch.batchname : course.coursename%></title>
     <%- include("./headers/dashboard.ejs") %>
 </head>
 

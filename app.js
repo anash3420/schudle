@@ -173,6 +173,14 @@ const courseSchema = new mongoose.Schema({
     googlesheetid: String,
 });
 
+const batchSchema = new mongoose.Schema({
+    schoolshort: String,
+    schoolid: String,
+    batchname: String,
+    studentid: [],
+    email: [],
+});
+
 const schoolSchema = new mongoose.Schema({
     schoolname: String,
     schoolemail: String,
@@ -181,6 +189,7 @@ const schoolSchema = new mongoose.Schema({
     studentid: [],
     professorid: [],
     courses: [],
+    batches: [],
     events: [eventSchema],
     googletoken: String,
 });
@@ -218,6 +227,7 @@ const userSchema = new mongoose.Schema({
         default: 'student'
     },
     courses: [],
+    batch: mongoose.ObjectId,
     grades: [gradeSchema],
 });
 
@@ -231,6 +241,7 @@ const School = new mongoose.model('School', schoolSchema);
 const User = new mongoose.model('User', userSchema);
 const Course = new mongoose.model('Course', courseSchema);
 const Review = new mongoose.model('Review', reviewSchema);
+const Batch = new mongoose.model('Batch', batchSchema);
 
 
 //Creating Strategy for Authentication
@@ -674,7 +685,8 @@ app.get("/:schoolname/profile", function (req, res) {
                 info: req.user,
                 school: shortname,
                 name: req.user.firstname + ' ' + req.user.lastname,
-                message: ""
+                message: "",
+                google_config: true,
             });
         } else if (req.user.role == "professor") {
             Course.find({
@@ -786,23 +798,32 @@ app.post("/:schoolname/profile/change_photo", uploadDisk.single("file"), functio
 //Admin Dashboard route
 app.get("/:schoolname/admin/dashboard", function (req, res) {
     const shortname = req.params.schoolname;
-
+    let google_config = false;
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         School.findOne({
             shortname: shortname,
-        }, 'studentid professorid events', function (err, find) {
+        }, 'studentid professorid events googletoken', function (err, find) {
+            if(find.googletoken){
+                google_config= true;
+            }
             Course.find({
                 schoolshort: shortname,
             }, 'coursename course_username', function (err, found) {
-                res.render("admin_dash", {
-                    school: shortname,
-                    courses: found,
-                    no_student: find.studentid.length,
-                    no_professor: find.professorid.length,
-                    name: req.user.firstname + ' ' + req.user.lastname,
-                    info: req.user,
-                    events: find.events.length
-                });
+                Batch.find({
+                    schoolshort: shortname,
+                }, 'batchname', function(err,batches){
+                    res.render("admin_dash", {
+                        school: shortname,
+                        courses: found,
+                        batches: batches,
+                        no_student: find.studentid.length,
+                        no_professor: find.professorid.length,
+                        name: req.user.firstname + ' ' + req.user.lastname,
+                        info: req.user,
+                        events: find.events.length,
+                        google_config: google_config,
+                    });
+                })    
             })
         })
     } else {
@@ -1057,6 +1078,7 @@ app.get("/:schoolname/admin/createstudent", function (req, res) {
 })
 
 app.post("/:schoolname/admin/createstudent", function (req, res) {
+    // console.log(req.body);
     const shortname = req.params.schoolname;
 
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
@@ -1429,11 +1451,8 @@ async function registerStudents(users, failed, registerd) {
                 console.error(err)
                 return
             }
-        })
-        
-    //    setTimeout(function(){ res.send({users:failed}); }, 00);
-
-    //    res.redirect("/" + schoolname + "/admin/dashboard")
+        })                                                 
+        res.redirect("/" +shortname+ "/admin/dashboard")
     }
 })
 
@@ -1646,7 +1665,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         const coursename = _.capitalize(req.body.coursename);
         const course_username = _.upperCase(req.body.course_username);
-
+        let folder_id;
         School.findOne({
             shortname: shortname
         }, function (err, find) {
@@ -1671,7 +1690,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         console.error(err);
                     } else {
                         // console.log('Folder Id: ', file.data.id);
-                        let folder_id = file.data.id;
+                        folder_id = file.data.id;
                         // console.log(typeof(file.data.id));
                         const newCourse = new Course({
                             coursename: coursename,
@@ -1686,6 +1705,19 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         newCourse.save(function (err, course) {
                             find.courses.push(course._id)
                             find.save(function () {
+                                drive.permissions.create({
+                                    fileId: folder_id,
+                                    resource: {
+                                        'value': 'default',
+                                        'type': 'anyone',
+                                        'role': 'reader'
+                                    },
+                                    auth: auth
+                                }, function (err, res) {
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                });
                                 res.send({
                                     message: "all saved",
                                 });
@@ -1693,6 +1725,7 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
                         })
                     }
                 });
+
             }
 
 
@@ -1705,9 +1738,93 @@ app.post("/:schoolname/admin/createcourse", function (req, res) {
 })
 
 
+//Creating Batch route
+app.get("/:schoolname/admin/createbatch", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        res.render("create_batch", {
+            shortname: shortname,
+        });
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+app.post("/:schoolname/admin/createbatch-validation", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const val = req.body.val;
+
+
+        if (val == 'batchname') {
+            Batch.findOne({
+                schoolshort: shortname,
+                batchname: _.capitalize(req.body.data),
+            }, function (err, found) {
+                if (found) {
+                    res.send({
+                        message: 'taken',
+                    })
+                } else {
+                    res.send({
+                        message: 'not taken',
+                    })
+                }
+
+            })
+        }
+
+    } else {
+        res.send({
+            message: 'Uauthorised',
+        })
+    }
+})
+
+app.post("/:schoolname/admin/createbatch", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = _.capitalize(req.body.batchname);
+
+        School.findOne({
+            shortname: shortname
+        }, function (err, find) {
+                const newBatch = new Batch({
+                    batchname: batchname,
+                    schoolshort: shortname,
+                    schoolid: find._id,
+                });
+
+                newBatch.save(function (err, batch) {
+                    find.batches.push(batch._id)
+                    find.save(function () {
+                        res.send({
+                            message: "all saved",
+                        });
+                    })
+                })
+        })
+
+    } else {
+        res.send({
+            message: 'Uauthorised',
+        })
+    }
+})
+
+
+
+
+
+
+
 //Custom Course route
 app.get("/:schoolname/admin/courses/:course", function (req, res) {
     const shortname = req.params.schoolname;
+    let google_config = true;
     if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
         const coursename = req.params.course.split("$")[0];
         const courseid = req.params.course.split("$")[1];
@@ -1735,6 +1852,7 @@ app.get("/:schoolname/admin/courses/:course", function (req, res) {
                 professors: professors,
                 students: students,
                 info: req.user,
+                google_config: google_config,
             });
         })
 
@@ -1743,7 +1861,42 @@ app.get("/:schoolname/admin/courses/:course", function (req, res) {
     }
 })
 
+//Custom Batch Route
+app.get("/:schoolname/admin/batches/:batch", function (req, res) {
+    const shortname = req.params.schoolname;
+    let google_config = true;
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
 
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        User.find({
+            schoolshort: shortname,
+            batch: batchid,
+        }, 'firstname lastname role username email profileimg', function (err, students) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            res.render("batch", {
+                school: shortname,
+                batch: batch,
+                name: req.user.firstname + " " + req.user.lastname,
+                students: students,
+                info: req.user,
+                google_config: google_config,
+            });
+        })
+
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
 
 //Assigning Professor route
 app.get("/:schoolname/admin/courses/:course/assignprof", function (req, res) {
@@ -1775,6 +1928,7 @@ app.get("/:schoolname/admin/courses/:course/assignprof", function (req, res) {
                 course: course,
                 professors: professors,
                 info: req.user,
+                google_config: true,
             });
         })
 
@@ -1872,6 +2026,7 @@ app.get("/:schoolname/admin/courses/:course/removeprof", function (req, res) {
                 school: shortname,
                 course: course,
                 professors: professors,
+                google_config: true,
             });
         })
     } else {
@@ -1970,6 +2125,44 @@ app.get("/:schoolname/admin/courses/:course/enrollstudent", function (req, res) 
                 school: shortname,
                 course: course,
                 students: students,
+                google_config: true,
+            });
+        })
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+app.get("/:schoolname/admin/batches/:batch/enrollstudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        User.find({
+            schoolshort: shortname,
+            role: "student",
+            batch: {
+                $ne: batchid,
+            }
+        }, 'firstname lastname username email profileimg', function (err, students) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            res.render("enroll_student", {
+                name: req.user.firstname + " " + req.user.lastname,
+                info: req.user,
+                school: shortname,
+                batch: batch,
+                students: students,
+                google_config: true,
             });
         })
     } else {
@@ -2036,6 +2229,68 @@ app.post("/:schoolname/admin/courses/:course/enrollstudent", function (req, res)
     }
 })
 
+
+app.post("/:schoolname/admin/batches/:batch/enrollstudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        var students = req.body.students;
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        if (typeof students == "string") {
+            students = [];
+            students.push(req.body.students)
+        }
+
+        var studentid = students.map((item) => item.split("$")[0]);
+        var studentemail = students.map((item) => item.split("$")[1]);
+
+        Batch.findOneAndUpdate({
+            batchname: batchname,
+            schoolshort: shortname,
+        }, {
+            $push: {
+                studentid: {
+                    $each: studentid
+                },
+                email: {
+                    $each: studentemail
+                }
+            }
+        }, function (err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+
+            User.updateMany({
+                _id: {
+                    $in: studentid,
+                }
+            }, {
+                batch: result._id
+            }, function (err, result) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                res.redirect("/" + shortname + "/admin/batches/" + req.params.batch);
+            })
+        })
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+
+
+
 //Remove Student route
 app.get("/:schoolname/admin/courses/:course/removestudent", function (req, res) {
     const shortname = req.params.schoolname;
@@ -2066,6 +2321,43 @@ app.get("/:schoolname/admin/courses/:course/removestudent", function (req, res) 
                 school: shortname,
                 course: course,
                 students: students,
+                google_config: true,
+            });
+        })
+    } else {
+        res.redirect("/" + shortname);
+    }
+})
+
+
+app.get("/:schoolname/admin/batches/:batch/removestudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        User.find({
+            schoolshort: shortname,
+            role: "student",
+            batch: batchid
+        }, 'firstname lastname username email profileimg', function (err, students) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            res.render("remove_student", {
+                name: req.user.firstname + " " + req.user.lastname,
+                info: req.user,
+                school: shortname,
+                batch: batch,
+                students: students,
+                google_config: true,
             });
         })
     } else {
@@ -2135,6 +2427,66 @@ app.post("/:schoolname/admin/courses/:course/removestudent", function (req, res)
     };
 })
 
+app.post("/:schoolname/admin/batches/:batch/removestudent", function (req, res) {
+    const shortname = req.params.schoolname;
+
+    if (req.isAuthenticated() && req.user.role == "admin" && req.user.schoolshort == shortname) {
+        var students = req.body.students;
+        const batchname = req.params.batch.split("$")[0];
+        const batchid = req.params.batch.split("$")[1];
+
+        var batch = {
+            batchname: batchname,
+            _id: batchid,
+        }
+
+        if (typeof students == "string") {
+            students = [];
+            students.push(req.body.students);
+        }
+
+        var studentid = students.map((item) => item.split("$")[0]);
+        var studentemail = students.map((item) => item.split("$")[1]);
+
+        Batch.findOneAndUpdate({
+            batchname: batchname,
+            schoolshort: shortname,
+        }, {
+            $pull: {
+                studentid: {
+                    $in: studentid
+                },
+                email: {
+                    $in: studentemail
+                }
+            }
+        }, function (err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            User.updateMany({
+                _id: {
+                    $in: studentid,
+                }
+            }, {
+                batch: undefined
+            }, function (err, result) {
+                console.log(result);
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                res.redirect("/" + shortname + "/admin/batches/" + req.params.batch);
+            })
+        })
+
+    } else {
+        res.redirect("/" + shortname);
+    };
+})
+
+
 //Remove user from school
 app.get('/:schoolname/admin/deleteUser', function (req, res) {
     const schoolshort = req.params.schoolname;
@@ -2156,7 +2508,8 @@ app.get('/:schoolname/admin/deleteUser', function (req, res) {
                         users: found,
                         message: "",
                         name: req.user.firstname + ' ' + req.user.lastname,
-                        info: req.user
+                        info: req.user,
+                        google_config: true,
                     });
                 })
             }
@@ -2951,7 +3304,10 @@ app.post('/:schoolname/:course_id/add_course_cont', uploadDisk.single("file"), f
             if (found) {
                 var fileMetadata = {
                     name: req.body.content_name, // file name that will be saved in google drive
-                    parents: [found.drivefolderid]
+                    parents: [found.drivefolderid],
+                    published: true,
+                    publishedOutsideDomain: true,
+                    publishAuto: true
                 };
                 var media = {
                     mimeType: req.file.mimetype,
@@ -3244,6 +3600,7 @@ app.get("/:schoolname/admin/eventpage", function (req, res) {
                             name: req.user.firstname + ' ' + req.user.lastname,
                             info: req.user,
                             courses: found,
+                            google_config: true,
                             // eventId: found.event.eventId
                         });
                     }

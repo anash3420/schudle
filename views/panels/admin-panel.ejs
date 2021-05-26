@@ -12,21 +12,26 @@
             <li class="nav-item"><a class="nav-link" id="admin_profile" href="/<%=school%>/profile"><i
                         class="fas fa-user"></i><span>Profile</span></a></li>
 
-            <li class="nav-item"><a class="nav-link" href="/<%=school%>/admin/createprof"><i
+            
+            <% if(google_config){%>
+            <li class="nav-item"><a class="nav-link " href="/<%=school%>/admin/createprof"><i
                         class="fas fa-user-tie"></i><span>Register Professor</span></a></li>
 
-            <li class="nav-item"><a class="nav-link" href="/<%=school%>/admin/createstudent"><i
+            <li class="nav-item"><a class="nav-link " href="/<%=school%>/admin/createstudent"><i
                         class="fas fa-user-graduate"></i><span>Register Student</span></a></li>
             
-            <li class="nav-item"><a class="nav-link" id="delete_user" href="/<%=school%>/admin/deleteUser"><i
+            <li class="nav-item"><a class="nav-link " id="delete_user" href="/<%=school%>/admin/deleteUser"><i
                         class="fas fa-user-times"></i><span>Delete User</span></a></li>            
 
-            <li class="nav-item"><a class="nav-link" href="/<%=school%>/admin/createcourse"><i
+            <li class="nav-item"><a class="nav-link " href="/<%=school%>/admin/createcourse"><i
                         class="fas fa-book"></i><span>Create Course</span></a></li>
 
-            <li class="nav-item"><a class="nav-link" id="admin_events" href="/<%=school%>/admin/eventpage"><i
-                        class="fas fa-calendar-alt"></i><span>Events</span></a></li>
+            <li class="nav-item"><a class="nav-link " href="/<%=school%>/admin/createbatch"><i
+                        class="fas fa-book"></i><span>Create Batch</span></a></li>
 
+            <li class="nav-item"><a class="nav-link " id="admin_events" href="/<%=school%>/admin/eventpage"><i
+                        class="fas fa-calendar-alt"></i><span>Events</span></a></li>
+            <%}%>
             <li class="nav-item"><a class="nav-link" href="/<%=school%>/admin/configure"><i
                         class="fas fa-tools"></i><span>Configuration</span></a></li>
         </ul>
@@ -35,6 +40,7 @@
     </div>
 </nav>
 <script>
+    
     // console.log(location.pathname.split("/").pop());
     var filename=location.pathname.split("/").pop();
     if(filename === "dashboard"){

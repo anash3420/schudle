@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>course - <%= batch ? batch.batchname : course.coursename %> </title>
+    <title>Batch - <%=batch.batchname%></title>
     <%- include("./headers/dashboard.ejs") %>
 </head>
 
@@ -19,12 +19,56 @@
 
                 <div class="container-fluid">
                     <div class="d-sm-flex justify-content-between align-items-center mb-4">
-                        <h3 class="text-dark mb-0 text-uppercase">Enroll Students</h3>
+                        <h3 class="text-dark mb-0 text-uppercase"><%=batch.batchname%></h3>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 col-xl-3 mb-4">
+                            <a class="success-link"
+                            href="/<%=school%>/admin/batches/<%=batch.batchname + "$" +batch._id%>/enrollstudent">
+                                <div class="card shadow border-left-success py-2">
+                                    <div class="card-body">
+                                        <div class="row align-items-center no-gutters">
+                                            <div class="col mr-2">
+                                                <div class="text-success font-weight-bold h5 mb-1">
+                                                    <span class="success">Enroll Students</span>
+                                                </div>
+                                                <div class="text-uppercase text-dark font-weight-bold text-xs mb-1">
+                                                    <span><%=students.length%> students assigned</span></div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-user-graduate fa-2x text-gray-700"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-6 col-xl-3 mb-4">
+                            <a class="danger-link"
+                            href="/<%=school%>/admin/batches/<%=batch.batchname + "$" +batch._id%>/removestudent">
+                                <div class="card shadow border-left-danger py-2">
+                                    <div class="card-body">
+                                        <div class="row align-items-center no-gutters">
+                                            <div class="col mr-2">
+                                                <div class="text-danger font-weight-bold h5 mb-1">
+                                                    <span class="danger">Unenroll Student</span>
+                                                </div>
+                                                <div class="text-uppercase text-dark font-weight-bold text-xs mb-1">
+                                                    <span><%=students.length%> students assigned</span></div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    
                     <div class="container-fluid">
                         <div class="card shadow">
                             <div class="card-header py-3">
-                                <p class="text-primary m-0 font-weight-bold">List of Students</p>
+                                <p class="text-primary m-0 font-weight-bold">Students enrolled</p>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -38,44 +82,28 @@
                                                     <option value="100">100</option>
                                                 </select>&nbsp;</label></div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="text-md-right dataTables_filter" id="dataTable_filter"><button
-                                                class="btn btn-primary btn-md d-none d-sm-inline-block" type="submit"
-                                                name="submit">Enroll</button></div>
-                                    </div>
                                 </div>
                                 <div class="table-responsive table mt-2" id="dataTable" role="grid"
                                     aria-describedby="dataTable_info">
                                     <table class="table my-0" id="dataTable">
                                         <thead>
                                             <tr>
-                                                <th>Select</th>
                                                 <th>Name</th>
                                                 <th>Username</th>
                                                 <th>Email</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <form method="POST" id="enroll_student">
-                                                <%students.forEach(function(student){%>
-                                                <tr>
-                                                    <td>
-                                                        <div class="custom-control custom-checkbox"><input
-                                                                class="custom-control-input checkbox" type="checkbox"
-                                                                id="<%=student._id%>" name="students"
-                                                                value="<%=student._id+"$"+student.email%>"><label
-                                                                class="custom-control-label"
-                                                                for="<%=student._id%>"></label></div>
-                                                    </td>
-                                                    <td><img class="rounded-circle mr-2" width="30" height="30"
-                                                            src="data:image/<%=student.profileimg.contentType%>;base64,
-                                                            <%=student.profileimg.data.toString('base64')%>"><%=student.username%>
-                                                    </td>
-                                                    <td><%=student.username%></td>
-                                                    <td><%=student.email%></td>
-                                                </tr>
-                                                <% })%>
-                                            </form>
+                                            <%students.forEach(function(student){%>
+                                            <tr>
+                                                <td><img class="rounded-circle mr-2" width="30" height="30"
+                                                        src="data:image/<%=student.profileimg.contentType%>;base64,
+                                                        <%=student.profileimg.data.toString('base64')%>"><%=student.username%></td>
+
+                                                <td><%=student.username%></td>
+                                                <td><%=student.email%></td>
+                                            </tr>
+                                            <% })%>
                                         </tbody>
                                     </table>
                                 </div>
@@ -102,7 +130,6 @@
                             </div>
                         </div>
                     </div>
-                    <br>
                 </div>
             </div>
 
@@ -110,26 +137,5 @@
             <%- include("./footers/dash-preload.ejs") %> 
 
 </body>
-
-<script>
-    function validateGrp() {
-        let things = document.querySelectorAll('.checkbox')
-        let checked = 0;
-        for (let thing of things) {
-            thing.checked && checked++
-        }
-        if (checked) {
-            things[things.length - 1].setCustomValidity("");
-            document.getElementById('enroll_student').submit();
-        } else {
-            things[things.length - 1].setCustomValidity("You must check at least one checkbox");
-            things[things.length - 1].reportValidity();
-        }
-    }
-
-    document.querySelector('[name=submit]').addEventListener('click', () => {
-        validateGrp()
-    });
-</script>
 
 </html>
