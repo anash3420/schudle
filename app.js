@@ -34,7 +34,7 @@ const algorithm = 'aes-256-ctr';
 const secretKey = process.env.SECRETKEY; // length must be 32.
 const iv = crypto.randomBytes(16);
 
-
+var port = process.env.PORT || 3000;
 
 // drive configuration 
 const scopes = [
@@ -80,10 +80,16 @@ app.set('view engine', 'ejs');
 
 
 //Creating database
-const db = mongoose.connect('mongodb://localhost:27017/schudle', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+const db = mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }).then(() => {
+        console.log('Connected to database ')
+    })
+    .catch((err) => {
+        console.error(`Error connecting to the database. \n${err}`);
+    })
+
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
@@ -3967,6 +3973,6 @@ app.get('/error404', function (req, res) {
     res.render('error404');
 })
 // Server Hosting
-app.listen(3000, function () {
+app.listen(port, function () {
     console.log("server started");
 })
