@@ -2406,24 +2406,31 @@ app.get("/:schoolname/:courseid/:itemid/viewsubmission", function (req, res) {
     if (req.isAuthenticated() && req.user.role == "professor") {
         var itemid = req.params.itemid;
         // console.log(itemid);
-        Course.findOne({
-            _id: req.params.courseid
+        Course.find({
+            professorid: {
+                $in: [String(req.user._id)]
+            }
         }, function (err, found) {
             if (err) {
                 console.log(err);
             } else {
                 // console.log(found);
-                for (var i = 0; i < found.assignments.length; i++) {
-                    if (found.assignments[i]._id == itemid) {
+                Course.findOne({
+                    _id: req.params.courseid,
+                },function (error,find){
+                    for (var i = 0; i < find.assignments.length; i++) {
+                    if (find.assignments[i]._id == itemid) {
                         // console.log(typeof(found.assignments[i].submissions[0].time))
                         // console.log(found.assignments[i].submissions[0].time);
                         res.render("view_submission", {
-                            item: found.assignments[i],
+                            item: find.assignments[i],
                             school: req.params.schoolname,
-                            courseid: req.params.courseid
+                            courseid: req.params.courseid,
+                            courses:found
                         });
                     }
                 }
+                })
             }
         })
     }
