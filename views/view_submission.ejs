@@ -1,4 +1,121 @@
 <!DOCTYPE html>
+<html>
+
+<head>
+    <title>Profile - Schudle</title>
+    <%- include("./headers/forms.ejs") %>
+    <link rel="stylesheet" href="/css/change-photo.css">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <%- include("./panels/professor-panel.ejs") %>
+
+        <div class="d-flex flex-column" id="content-wrapper">
+            <%- include("./headers/top-container.ejs") %>
+            <%- include("./preloaders/dash-preload.ejs") %> 
+            <div id="content" style="display: none;">
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0 text-uppercase"><%=item.name%></h3>
+                    </div>
+                    <div class="card shadow mb-3">
+                        <div class="card-header py-3">
+                            <p class="text-primary m-0 font-weight-bold">List of Submissions</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive table mt-2" id="dataTable" role="grid"
+                                aria-describedby="dataTable_info">
+                                <table class="table my-0" id="dataTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Name</th>
+                                            <th>Submission</th>
+                                            <th>Date&Time</th>
+                                            <th>Points</th>
+                                            <th>Grade</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <%item.submissions.forEach(function(sub){ var subid= sub._id%>
+                                            <% console.log(sub); %> 
+                                            <tr>
+                                                <td>
+                                                    <%=sub.username%>
+                                                </td>
+                                                <td><%=sub.fullname%> </td>
+                                                <td>
+                                                    <%if(sub.subType == "link"){%>
+                                                        <a href="<%=sub.link%>" target="_blank" class="btn btn-primary" style="padding: 2.5% 5%; box-shadow: none; height: inherit; ">View submission</a>
+                                                    <%}else{%>            
+                                                        <form action="/<%=school%>/download/<%= sub.name %>.<%= sub.extension %>/<%= sub.googleid %>" method="GET">
+                                                            <button type="submit" class="btn btn-primary btn-md d-none d-sm-inline-block" style="padding: 2.5% 5%; box-shadow: none; height: inherit; ">View Submission</button>
+                                                        </form>
+                                                    <%}%>
+                                                </td>
+                                                <td><%=sub.time.toDateString().slice(0,-4)%> | <%=sub.time.toLocaleTimeString()%> </td> 
+                                                <td>
+                                                    <form name="<%=sub._id%>" action="/<%=school%>/<%=courseid%>/<%=item._id%>/grade" method="POST">
+                                                        <div class="form-group">
+                                                                <input type="Number" name="points" class="form-control" min="0" max="<%=item.totalpoints%>" placeholder="&nbsp;/<%=item.totalpoints%>">
+                                                                <button class="upload-btn float-right" type="submit" name="subid" value="<%=sub._id%>"><i class="fas fa-check"></i></button>
+                                                        </div>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    <%if(sub.pointsobtained){%>
+                                                        <div class="green">
+                                                            <label>* <%=sub.pointsobtained%>/<%=item.totalpoints%> points assigned.</label>
+                                                        </div>
+                                                     <%} else{%>
+                                                        <div class="red">
+                                                            <label>*Yet to be graded</label>
+                                                        </div>
+                                                     <%}%>
+                                                </td>
+                                            </tr>
+                                            <% })%>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <%- include("./footers/dashboard.ejs") %>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+                crossorigin="anonymous">
+            </script>
+            <script>
+                $(".btn-primary").hover(function() {
+                    $(this).css("background-color", "#470763");
+                },function(){
+                    $(this).css("background-color", "#61128c");
+                });
+                $(".upload-btn").css({
+                    "position": "relative",
+                    "margin-left": "40px",
+                    "top": "-38px"
+                });
+            </script>
+            <%- include("./footers/dash-preload.ejs") %> 
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,4 +166,4 @@
         <button type="submit" name="assignment" value="<%=JSON.stringify(item)%>">Generate Assignment Report XLSX</button>
     </form>
 </body>
-</html>
+</html> -->

@@ -206,7 +206,7 @@ html {
   }
   .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
     color: #ffffff;
-    background: #61128c !important;
+    background: #61128c ;
     outline: none;
   }
   
@@ -815,7 +815,7 @@ body .grid {
   padding: 5px 15px;
 }
 
-.fa-download:hover,.fa-external-link-alt:hover,.fa-minus:hover,.fa-upload:hover,.fa-eject:hover{
+.fa-download:hover,.fa-external-link-alt:hover,.fa-minus:hover,.fa-upload:hover,.fa-eject:hover,.fa-check:hover{
   color: #61128c;
   background-color: #e3ebf1;
 }
@@ -1061,4 +1061,14 @@ body .grid {
 	 .tabs .content section h2.tabtitle {
 		 display: block;
 	}
+}
+ /* Hiding arrows in number field */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
 }
