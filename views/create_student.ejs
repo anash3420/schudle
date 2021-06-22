@@ -4,13 +4,14 @@
 <head>
     <title>Register - Student</title>
     <%- include("./headers/forms.ejs") %>
+    <link rel="stylesheet" href="/css/change-photo.css">
     <link rel="stylesheet" href="/css/form-preload.css">
 <body class="bg-gradient-primary">
 
     <%- include("./preloaders/form-preloader.ejs") %> 
     <br><br>
     <div class="container" style="display: none;">
-        <div class="card shadow-lg o-hidden border-0 my-5">
+        <div class="card shadow-lg o-hidden border-0">
             <div class="card-body p-0">
                 <div class="row">
                     <div class="col-lg-5 d-none d-lg-flex">
@@ -25,16 +26,6 @@
                                 <br>
                                 <h4 class="text-dark mb-4">Register Student</h4>
                             </div>
-
-                            <form class="user" action="/<%=shortname%>/admin/register_students" enctype="multipart/form-data"
-                                method="POST">
-                                <div class="form-group ">
-                                    <input class="form-control form-control-user create-input" type="file" name="file" required>
-                                </div><button class="btn btn-primary btn-block text-white btn-user" type="submit"
-                                    name="upload">Upload CSV</button>
-                            </form>
-                            <br>
- 
                             <form class="user" id="add_student" method="POST" onsubmit='sub(event)'>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
@@ -74,6 +65,16 @@
                                 </div><button class="btn btn-primary btn-block text-white btn-user" type="submit"
                                     name="register">Register Account</button>
                             </form>
+                            <br>
+                            <div class="text-center">
+                                <h6>----------------------OR----------------------</h6>
+                                <a class="btn btn-primary btn-user text-white" data-bs-toggle="modal" data-bs-target="#CSVModal" href="#" style="    
+                                font-size: 0.8rem;
+                                border-radius: 10rem;
+                                padding: 1rem 2.5rem;
+                                height:auto">Upload CSV</a>
+                            </div>
+                            <%- include("./modals/CSV-upload.ejs") %>
                             <br><br><br>
                         </div>
                     </div>
