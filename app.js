@@ -2405,7 +2405,7 @@ app.get('/:schoolname/:course_id', function (req, res) {
 app.get("/:schoolname/:courseid/:itemid/viewsubmission", function (req, res) {
     if (req.isAuthenticated() && req.user.role == "professor") {
         var itemid = req.params.itemid;
-        // console.log(itemid);
+        console.log(itemid);
         Course.find({
             professorid: {
                 $in: [String(req.user._id)]
@@ -2414,7 +2414,7 @@ app.get("/:schoolname/:courseid/:itemid/viewsubmission", function (req, res) {
             if (err) {
                 console.log(err);
             } else {
-                // console.log(found);
+                console.log(found);
                 Course.findOne({
                     _id: req.params.courseid,
                 },function (error,find){
@@ -2426,13 +2426,17 @@ app.get("/:schoolname/:courseid/:itemid/viewsubmission", function (req, res) {
                             item: find.assignments[i],
                             school: req.params.schoolname,
                             courseid: req.params.courseid,
-                            courses:found
+                            courses:found,
+                            info:req.user
                         });
                     }
                 }
                 })
             }
         })
+    } else{
+        console.log(req.user);
+        res.redirect("/" + schoolshort);
     }
 })
 

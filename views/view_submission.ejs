@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -16,48 +16,69 @@
             <%- include("./preloaders/dash-preload.ejs") %> 
             <div id="content" style="display: none;">
                 <div class="container-fluid">
-                    <h3 class="text-dark mb-4">Profile</h3>
-                    <div class="row mb-3">
-                        <div class="col-lg-12">
-                            <div class="row">
-                                <div class="col">
-                                    <div class="card shadow mb-3">
-                                        <div class="card-header py-3">
-                                            <p class="text-primary m-0 font-weight-bold">User Settings</p>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class=""><strong>Username</strong>
-                                                        <h6 class="form-control">hii </p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class=""><strong>Email Address</strong>
-                                                        <p class="form-control">bye </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class=""><strong>First Name</strong>
-                                                        <p class="form-control">cool </p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class=""><strong>Last Name</strong>
-                                                        <p class="form-control">fuck you</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <button class="btn btn-primary btn-sm" type="submit">
-                                                    Reset Password
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0 text-uppercase"><%=item.name%></h3>
+                    </div>
+                    <div class="card shadow mb-3">
+                        <div class="card-header py-3">
+                            <p class="text-primary m-0 font-weight-bold">List of Submissions</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive table mt-2" id="dataTable" role="grid"
+                                aria-describedby="dataTable_info">
+                                <table class="table my-0" id="dataTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Name</th>
+                                            <th>Submission</th>
+                                            <th>Date&Time</th>
+                                            <th>Points</th>
+                                            <th>Grade</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <%item.submissions.forEach(function(sub){ var subid= sub._id%>
+                                            <% console.log(sub); %> 
+                                            <tr>
+                                                <td>
+                                                    <%=sub.username%>
+                                                </td>
+                                                <td><%=sub.fullname%> </td>
+                                                <td>
+                                                    <%if(sub.subType == "link"){%>
+                                                        <a href="<%=sub.link%>" target="_blank" class="btn btn-primary" style="padding: 2.5% 5%; box-shadow: none; height: inherit; ">View submission</a>
+                                                    <%}else{%>            
+                                                        <form action="/<%=school%>/download/<%= sub.name %>.<%= sub.extension %>/<%= sub.googleid %>" method="GET">
+                                                            <button type="submit" class="btn btn-primary btn-md d-none d-sm-inline-block" style="padding: 2.5% 5%; box-shadow: none; height: inherit; ">View Submission</button>
+                                                        </form>
+                                                    <%}%>
+                                                </td>
+                                                <td><%=sub.time.toDateString().slice(0,-4)%> | <%=sub.time.toLocaleTimeString()%> </td> 
+                                                <td>
+                                                    <form name="<%=sub._id%>" action="/<%=school%>/<%=courseid%>/<%=item._id%>/grade" method="POST">
+                                                        <div class="form-group">
+                                                                <input type="Number" name="points" class="form-control" min="0" max="<%=item.totalpoints%>" placeholder="&nbsp;/<%=item.totalpoints%>">
+                                                                <button class="upload-btn float-right" type="submit" name="subid" value="<%=sub._id%>"><i class="fas fa-check"></i></button>
+                                                        </div>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    <%if(sub.pointsobtained){%>
+                                                        <div class="green">
+                                                            <label>* <%=sub.pointsobtained%>/<%=item.totalpoints%> points assigned.</label>
+                                                        </div>
+                                                     <%} else{%>
+                                                        <div class="red">
+                                                            <label>*Yet to be graded</label>
+                                                        </div>
+                                                     <%}%>
+                                                </td>
+                                            </tr>
+                                            <% })%>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -69,10 +90,22 @@
                 integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
                 crossorigin="anonymous">
             </script>
+            <script>
+                $(".btn-primary").hover(function() {
+                    $(this).css("background-color", "#470763");
+                },function(){
+                    $(this).css("background-color", "#61128c");
+                });
+                $(".upload-btn").css({
+                    "position": "relative",
+                    "margin-left": "40px",
+                    "top": "-38px"
+                });
+            </script>
             <%- include("./footers/dash-preload.ejs") %> 
 </body>
 
-</html> -->
+</html>
 
 
 
@@ -82,7 +115,7 @@
 
 
 
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -133,4 +166,4 @@
         <button type="submit" name="assignment" value="<%=JSON.stringify(item)%>">Generate Assignment Report XLSX</button>
     </form>
 </body>
-</html>
+</html> -->
