@@ -1,2 +1,2 @@
 # schudle
-The app is deployed at http://schudle.ml/ 
+The app is deployed at https://schudle.azurewebsites.net/
